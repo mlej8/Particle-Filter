@@ -2,23 +2,14 @@
 #include <cstdlib>
 #include <cmath>
 #include <vector>
+#include <random>
 using namespace std;
 
 double landmarks[4][2] = {{20.0, 20.0}, {80.0, 80.0}, {20.0, 80.0}, {80.0, 20.0}};
 double world_size = 100;
 
-//taken from https://www.tutorialspoint.com/generate-random-numbers-following-a-normal-distribution-in-c-cplusplus
-double rand_gen() {
-   // return a uniformly distributed random value
-   return ( (double)(rand()) + 1. )/( (double)(RAND_MAX) + 1. );
-}
-double normalRandom() {
-   // return a normally distributed random value
-   double v1=rand_gen();
-   double v2=rand_gen();
-   return cos(2*3.14*v2)*sqrt(-2.*log(v1));
-}
-
+std::default_random_engine generator;
+std::uniform_real_distribution<double> uniform_distribution(0.0, 1.0);
 
 
 class Robot {
@@ -30,9 +21,9 @@ class Robot {
         double turn_noise;
         double sense_noise;
         Robot(){
-            x = ((double) rand()/RAND_MAX)*world_size;
-            y = ((double) rand()/RAND_MAX)*world_size;
-            orientation = ((double) rand()/RAND_MAX)*2.0*M_PI;
+            x = uniform_distribution(generator)*world_size;
+            y = uniform_distribution(generator)*world_size;
+            orientation = uniform_distribution(generator)*2.0*M_PI;
             forward_noise = 0.0;
             turn_noise = 0.0;
             sense_noise = 0.0;
@@ -71,7 +62,8 @@ std::vector<double> Robot::sense(){
     std::vector<double> Z;
     for(int i=0;i<(sizeof landmarks/ sizeof landmarks[0]); i++){
         double dist = sqrt((x-landmarks[i][0])*(x-landmarks[i][0]) + (y-landmarks[i][1])*(y-landmarks[i][1]));
-        dist += normalRandom()*forward_noise;
+        std::normal_distribution<double> distribution(0.0, forward_noise);
+        dist += distribution(generator);
         Z.push_back(dist);
     }
     return Z;
@@ -81,14 +73,24 @@ Robot Robot::move(double turn, double forward){
     if (forward < 0 ){
         throw std::invalid_argument("Robot cant move backwards");
     }
-    double new_orientation = orientation + turn + normalRandom()*turn_noise;
+    std::normal_distribution<double> distribution1(0.0, turn_noise);
+    std::normal_distribution<double> distribution2(0.0, forward_noise);
+    double new_orientation = orientation + turn + distribution1(generator);
     new_orientation = fmod(new_orientation, 2* M_PI);
-    double dist = forward + normalRandom()*forward_noise;
+    if (new_orientation<0){
+        new_orientation = 0.0;
+    }
+    double dist = forward + distribution2(generator);
     double new_x = x+ cos(orientation)*dist;
     double new_y = y+ sin(orientation)*dist;
     new_x = fmod(new_x, world_size);
     new_y = fmod(new_y, world_size);
-
+    if (new_x < 0){
+        new_x = 0.0;
+    }
+    if (new_y <0){
+        new_y = 0.0;
+    }
     Robot res;
     res.set(new_x, new_y, new_orientation);
     res.set_noise(forward_noise, turn_noise, sense_noise);
@@ -150,7 +152,7 @@ int main(){
         }
 
         std::vector<Robot> p3;
-        int index = (int)((rand()/RAND_MAX)*N);
+        int index = (int)(uniform_distribution(generator)*N);
         double beta = 0.0;
         double max_w = w[0];
         for(int l=0;l<w.size();l++){
@@ -160,7 +162,7 @@ int main(){
         }
 
         for (int m=0;m<N;m++){
-            beta += (rand()/RAND_MAX)*2.0*max_w;
+            beta += uniform_distribution(generator)*2.0*max_w;
             while (beta > w[index]){
                 beta -= w[index];
                 index = (index+1)%N;
