@@ -9,9 +9,6 @@ const double landmarks[4][2] = {
     {20.0, 20.0}, {80.0, 80.0}, {20.0, 80.0}, {80.0, 20.0}};
 const double world_size = 100;
 
-static default_random_engine &get_engine();
-static double uniform_distribution_sample();
-
 class Robot {
  public:
   Robot();
@@ -48,4 +45,8 @@ class Robot {
 
 __host__ __device__ double Gaussian(double mu, double sigma, double x);
 __host__ double eval(Robot r, vector<Robot> p);
+
+__host__ default_random_engine &get_engine();
+__host__ double uniform_distribution_sample();
+
 #endif

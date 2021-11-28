@@ -5,13 +5,13 @@
 
 using namespace std;
 
-static default_random_engine &get_engine() {
+__host__ default_random_engine &get_engine() {
   // Initialized upon first call to the function.
   static default_random_engine engine;
   return engine;
 }
 
-static double uniform_distribution_sample() {
+__host__ double uniform_distribution_sample() {
   // Initialized upon first call to the function.
   static uniform_real_distribution<double> uniform_distribution(0.0, 1.0);
   return uniform_distribution(get_engine());

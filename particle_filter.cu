@@ -76,7 +76,7 @@ int main(int argc, char *argv[]) {
   for (int j = 0; j < T; j++) {
     double theta = uniform_distribution_sample() * M_PI/2;
     double distance = (uniform_distribution_sample() * 9.0) + 1;
-    myrobot.move(theta,distance);
+    my_robot.move(theta,distance);
     vector<double> Z = my_robot.sense();
     thrust::device_vector<double> Z_gpu(Z);
 
