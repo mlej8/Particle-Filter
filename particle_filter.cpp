@@ -70,9 +70,6 @@ int main(int argc, char *argv[]) {
     }
 
     // resampling
-    std::vector<Robot> p3;
-    int index = (int)(uniform_distribution_sample() * N);
-    double beta = 0.0;
     for (int m = 0; m < N; m++) {
       beta += uniform_distribution_sample() * 2.0 * max_w;
       while (beta > w[index]) {

@@ -1,3 +1,7 @@
+#include <thrust/device_vector.h>
+#include <thrust/extrema.h>
+#include <thrust/host_vector.h>
+
 #include <cmath>
 #include <iostream>
 #include <random>
@@ -7,75 +11,102 @@
 
 using namespace std;
 
-__global__ void simulate_robot_motion() {}
-
-__global__ void importance_weight_computation() {}
-
-__global__ void resampling() {}
-
-int main() {
+/**
+ * Simulate robot motion for each particle and perform importance weight
+ * computation
+ */
+__global__ void particle_filter(Robot *particles, double *weights, double theta,
+                                double distance, int N, double *Z_gpu, int num_landmarks, const double * landmarks) {
+  int index = threadIdx.x + blockDim.x * blockIdx.x;
+  if (index < N) {
+    particles[index].move(theta, distance);
+    double prob = 1.0;
+    for (int i = 0; i < num_landmarks; i++) {
+      double dist = sqrt((particles[index].get_x() - landmarks[i * 2 + 0]) *
+                             (particles[index].get_x() - landmarks[i * 2 + 0]) +
+                         (particles[index].get_y() - landmarks[i * 2 + 1]) *
+                             (particles[index].get_y() - landmarks[i * 2 + 1]));
+      prob *= Gaussian(dist, particles[index].get_sense_noise(), Z_gpu[i]);
+    }
+    weights[index] = prob;
+  }
+}
+int main(int argc, char *argv[]) {
   // physical robot (ground truth)
   Robot my_robot;
 
-  // number of particles
-  int N = 1000;
+  if (argc != 4) {
+    cout << "Usage: ./particle_filter_gpu <number of particles> <number of "
+            "iterations of particle filtering> <number of threads per block"
+         << endl;
+    exit(1);
+  }
 
-  // number of iterations of particle filter
-  int T = 10;
+  // number of particles (TODO: set default to 1000)
+  int N = atoi(argv[1]);
+
+  // number of iterations of particle filter (TODO: set default to 10)
+  int T = atoi(argv[2]);
+
+  int block_size = atoi(argv[3]);
+  size_t num_block = (N + block_size - 1) / block_size;
+  size_t particles_size = N * sizeof(Robot);
+  // size_t num_obstacles = sizeof landmarks > 0 ? sizeof landmarks / sizeof
+  // landmarks[0] : sizeof landmarks;
 
   // initialize N random particles (robots)
   // list of particles  (guesses as to where the robot might be - each particle
   // is a vector representing the state of the robot (x,y,theta)  theta is the
   // angle relative to the x-axis)
-  std::vector<Robot> particles;
-  for (int i = 0; i < N; i++) {
-    Robot r;
-    r.set_noise(0.05, 0.05, 5.0);
-    particles.push_back(r);
-  }
+  vector<Robot> particles(N);
+  Robot *particles_gpu;
+  thrust::device_vector<double> weights_gpu(N);
+  thrust::host_vector<double> weights(N);
+  double *landmarks_gpu;
+  cudaMalloc(&landmarks_gpu, sizeof(landmarks));
+  cudaMemcpy(landmarks_gpu, landmarks, sizeof(landmarks),
+           cudaMemcpyHostToDevice);
+
+  // copy those particles on the GPU
+  cudaMalloc(&particles_gpu, particles_size);
+  // cudaMallocManaged(&weights, N * sizeof(double));
+  cudaMemcpy(particles_gpu, particles.data(), particles_size,
+             cudaMemcpyHostToDevice);
 
   for (int j = 0; j < T; j++) {
     // TODO here we are always turning by 0.1 and moving for 5 meters, randomly
     // generate the movement of the True robot
-    my_robot = my_robot.move(0.1, 5.0);
+    double theta = 0.1;
+    double distance = 5.0;
+    my_robot = my_robot.move(theta, distance);
     vector<double> Z = my_robot.sense();
+    thrust::device_vector<double> Z_gpu(Z);
 
-    // TODO take each of the particles and simulate robot motion
-    std::vector<Robot> p2;
-    for (int k = 0; k < N; k++) {
-      p2.push_back(particles[k].move(0.1, 5.0));
-    }
-    particles = p2;
+    particle_filter<<<num_block, block_size>>>(
+        particles_gpu, thrust::raw_pointer_cast(weights_gpu.data()), theta, distance, N,
+        thrust::raw_pointer_cast(Z_gpu.data()), Z.size(), landmarks_gpu);
 
-    // TODO weigth computation
-    std::vector<double> w;
-    for (int k = 0; k < N; k++) {
-      w.push_back(particles[k].measurement_prob(Z));
-    }
-
-    std::vector<Robot> p3;
+    cudaDeviceSynchronize();
 
     // resampling
     int index = (int)(uniform_distribution_sample() * N);
     double beta = 0.0;
-    double max_w = w[0];
-    for (int l = 0; l < w.size(); l++) {
-      if (w[l] > max_w) {
-        max_w = w[l];
-      }
-    }
+    thrust::copy(weights_gpu.begin(), weights_gpu.end(), weights.begin());
 
+    double max_w = *(thrust::max_element(weights.begin(), weights.end()));
     for (int m = 0; m < N; m++) {
       beta += uniform_distribution_sample() * 2.0 * max_w;
-      while (beta > w[index]) {
-        beta -= w[index];
+      while (beta > weights[index]) {
+        beta -= weights[index];
         index = (index + 1) % N;
       }
-      p3.push_back(particles[index]);
     }
-    particles = p3;
 
+    cudaMemcpy(particles.data(), particles_gpu, particles_size,
+               cudaMemcpyDeviceToHost);
     cout << eval(my_robot, particles) << endl;
   }
+
+  cudaFree(particles_gpu);
   return 0;
 }
