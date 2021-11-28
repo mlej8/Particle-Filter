@@ -44,7 +44,7 @@ add_executable(${pf_gpu} particle_filter.cu)
 target_link_libraries(${pf_gpu} ${LIBS})
 target_include_directories(${pf_gpu} PUBLIC ${INCLUDE_DIR})
 
-# if debug build, add debugging flag for CUDA compiling 
+# if debug build, add debugging flag for CUDA compiling
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   target_compile_options(${pf_gpu} PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-g -G>)
 endif()

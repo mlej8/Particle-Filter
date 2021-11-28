@@ -1,17 +1,26 @@
-#include <cmath>
 #include <cstdlib>
 #include <iostream>
-#include <random>
 #include <vector>
 
 #include "robot.h"
 
-int main() {
+int main(int argc, char *argv[]) {
+  if (argc == 2 || argc > 3) {
+    cout
+        << "Usage: ./particle_filter_cpu <optional:number_iteration (default:1000)> <optional:number_particles (default:10)>"
+        << endl;
+    exit(1);
+  }
+
   Robot myrobot;
   myrobot = myrobot.move(0.1, 5.0);
   std::vector<double> Z = myrobot.sense();
   int N = 1000;
   int T = 10;
+  if (argc == 3) {
+    N = atoi(argv[1]);
+    T = atoi(argv[2]);
+  }
 
   std::vector<Robot> p;
   for (int i = 0; i < N; i++) {
@@ -36,7 +45,7 @@ int main() {
     }
 
     std::vector<Robot> p3;
-    int index = (int)(uniform_distribution(generator) * N);
+    int index = (int) (uniform_distribution_sample() * N);
     double beta = 0.0;
     double max_w = w[0];
     for (int l = 0; l < w.size(); l++) {
@@ -46,7 +55,7 @@ int main() {
     }
 
     for (int m = 0; m < N; m++) {
-      beta += uniform_distribution(generator) * 2.0 * max_w;
+      beta += uniform_distribution_sample() * 2.0 * max_w;
       while (beta > w[index]) {
         beta -= w[index];
         index = (index + 1) % N;
