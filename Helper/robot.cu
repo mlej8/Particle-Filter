@@ -1,7 +1,9 @@
 #include <random>
 #include <stdexcept>
-
+#include <curand.h>
+#include <curand_kernel.h>
 #include "robot.cuh"
+#include <thrust/random.h>
 
 using namespace std;
 
@@ -62,20 +64,25 @@ vector<double> Robot::sense() {
   return Z;
 }
 
-__host__ __device__ 
+__host__ __device__
 void Robot::move(double turn, double forward) {
   if (forward < 0) {
     // throw invalid_argument("Robot cant move backwards");
     forward = 0;
   }
-  normal_distribution<double> distribution1(0.0, get_turn_noise()); // TODO use cuRAND instaed
-  normal_distribution<double> distribution2(0.0, get_forward_noise());
-  orientation = orientation + turn + distribution1(get_engine());
+
+//  TODO we can make a  random generator from different seeds
+  thrust::default_random_engine gen;
+//  see https://thrust.github.io/doc/classthrust_1_1random_1_1normal__distribution_a0c00f49ae6a01e0997e6871a054c61cc.html#a0c00f49ae6a01e0997e6871a054c61cc
+  thrust::random::normal_distribution< double > distribution1(0.5, get_turn_noise());
+  thrust::random::normal_distribution< double > distribution2(0.5, get_forward_noise());
+
+  orientation = orientation + turn + distribution1(gen);
   orientation = fmod(orientation, 2 * M_PI);
   if (orientation < 0) {
     orientation = 0.0;
   }
-  double dist = forward + distribution2(get_engine());
+  double dist = forward + distribution2(gen);
   x = x + cos(orientation) * dist;
   y = y + sin(orientation) * dist;
   x = fmod(x, world_size);

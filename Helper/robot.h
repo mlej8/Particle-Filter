@@ -9,8 +9,6 @@ const double landmarks[4][2] = {
     {20.0, 20.0}, {80.0, 80.0}, {20.0, 80.0}, {80.0, 20.0}};
 const double world_size = 100;
 
-//default_random_engine generator;
-//uniform_real_distribution<double> uniform_distribution(0.0, 1.0);
 
 static default_random_engine &get_engine() {
   // Initialized upon first call to the function.

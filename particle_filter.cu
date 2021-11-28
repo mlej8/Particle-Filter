@@ -37,7 +37,7 @@ int main(int argc, char *argv[]) {
 
   if (argc != 4) {
     cout << "Usage: ./particle_filter_gpu <number of particles> <number of "
-            "iterations of particle filtering> <number of threads per block"
+            "iterations of particle filtering> <number of threads per block>"
          << endl;
     exit(1);
   }
