@@ -7,7 +7,7 @@
 #include <random>
 #include <vector>
 
-#include "robot.h"
+#include "robot.cuh"
 
 using namespace std;
 
