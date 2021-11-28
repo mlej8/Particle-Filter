@@ -1,6 +1,4 @@
 # ignore executables and library files
-pf_cpu
-
 cmake_install.cmake
 CMakeCache.txt
 Makefile

@@ -110,7 +110,10 @@ Z = myrobot.sense()
 N = 1000
 T = 10 #Leave this as 10 for grading purposes.
 
+
 p = []
+
+# create the raw robot particles
 for i in range(N):
     r = robot()
     r.set_noise(0.05, 0.05, 5.0)
@@ -133,6 +136,8 @@ for t in range(T):
     index = int(random.random() * N)
     beta = 0.0
     mw = max(w)
+
+    # resampling of 
     for i in range(N):
         beta += random.random() * 2.0 * mw
         while beta > w[index]:
