@@ -1,4 +1,10 @@
 # ignore executables and library files
+particle_filter_cpu
+particle_filter_gpu
+
+
+
+# ignore executables and library files
 cmake_install.cmake
 CMakeCache.txt
 Makefile

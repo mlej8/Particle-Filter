@@ -1,12 +1,17 @@
-#include <cmath>
 #include <cstdlib>
 #include <iostream>
-#include <random>
 #include <vector>
 
 #include "robot.h"
 
-int main() {
+int main(int argc, char *argv[]) {
+  if (argc == 2 || argc > 3) {
+    cout
+        << "Usage: ./particle_filter_cpu <optional:number_iteration (default:1000)> <optional:number_particles (default:10)>"
+        << endl;
+    exit(1);
+  }
+
   // physical robot (ground truth)
   Robot myrobot;
   
@@ -18,6 +23,10 @@ int main() {
 
   // number of PF iterations
   int T = 10;
+  if (argc == 3) {
+    N = atoi(argv[1]);
+    T = atoi(argv[2]);
+  }
 
   // initialize particles
   std::vector<Robot> p;
@@ -50,8 +59,9 @@ int main() {
       w.push_back(p[k].measurement_prob(Z));
     }
 
-    
-    // weight normalization step
+    std::vector<Robot> p3;
+    int index = (int) (uniform_distribution_sample() * N);
+    double beta = 0.0;
     double max_w = w[0];
     for (int l = 0; l < w.size(); l++) {
       if (w[l] > max_w) {
@@ -61,10 +71,10 @@ int main() {
 
     // resampling
     std::vector<Robot> p3;
-    int index = (int)(uniform_distribution(generator) * N);
+    int index = (int)(uniform_distribution_sample() * N);
     double beta = 0.0;
     for (int m = 0; m < N; m++) {
-      beta += uniform_distribution(generator) * 2.0 * max_w;
+      beta += uniform_distribution_sample() * 2.0 * max_w;
       while (beta > w[index]) {
         beta -= w[index];
         index = (index + 1) % N;
