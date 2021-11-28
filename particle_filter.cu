@@ -74,14 +74,15 @@ int main(int argc, char *argv[]) {
              cudaMemcpyHostToDevice);
 
   for (int j = 0; j < T; j++) {
-    myrobot.move(uniform_distribution_sample() * M_PI/2, (uniform_distribution_sample() * 9.0) + 1);
+    double theta = uniform_distribution_sample() * M_PI/2;
+    double distance = (uniform_distribution_sample() * 9.0) + 1;
+    myrobot.move(theta,distance);
     vector<double> Z = my_robot.sense();
     thrust::device_vector<double> Z_gpu(Z);
 
     particle_filter<<<num_block, block_size>>>(
         particles_gpu, thrust::raw_pointer_cast(weights_gpu.data()), theta, distance, N,
         thrust::raw_pointer_cast(Z_gpu.data()), Z.size(), landmarks_gpu);
-
     cudaDeviceSynchronize();
 
     // resampling
