@@ -4,12 +4,25 @@
 
 using namespace std;
 
-double landmarks[4][2] = {
+const double landmarks[4][2] = {
     {20.0, 20.0}, {80.0, 80.0}, {20.0, 80.0}, {80.0, 20.0}};
-double world_size = 100;
+const double world_size = 100;
 
-default_random_engine generator;
-uniform_real_distribution<double> uniform_distribution(0.0, 1.0);
+//default_random_engine generator;
+//uniform_real_distribution<double> uniform_distribution(0.0, 1.0);
+
+std::default_random_engine &get_engine() {
+  // Initialized upon first call to the function.
+  static std::default_random_engine engine;
+  return engine;
+}
+
+double uniform_distribution_sample() {
+  // Initialized upon first call to the function.
+  static std::uniform_real_distribution<double> uniform_distribution(0.0, 1.0);
+  return uniform_distribution(get_engine());
+}
+
 
 class Robot {
  public:

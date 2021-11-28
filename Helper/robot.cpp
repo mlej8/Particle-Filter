@@ -6,9 +6,9 @@
 using namespace std;
 
 Robot::Robot()
-    : x(uniform_distribution(generator) * world_size),
-      y(uniform_distribution(generator) * world_size),
-      orientation(uniform_distribution(generator) * 2.0 * M_PI),
+    : x(uniform_distribution_sample() * world_size),
+      y(uniform_distribution_sample() * world_size),
+      orientation(uniform_distribution_sample() * 2.0 * M_PI),
       forward_noise(0.0),
       turn_noise(0.0),
       sense_noise(0.0) {}
@@ -38,9 +38,9 @@ vector<double> Robot::sense() {
   vector<double> Z;
   for (int i = 0; i < (sizeof landmarks / sizeof landmarks[0]); i++) {
     double dist = sqrt((x - landmarks[i][0]) * (x - landmarks[i][0]) +
-                       (y - landmarks[i][1]) * (y - landmarks[i][1]));
+        (y - landmarks[i][1]) * (y - landmarks[i][1]));
     normal_distribution<double> distribution(0.0, forward_noise);
-    dist += distribution(generator);
+    dist += distribution(get_engine());
     Z.push_back(dist);
   }
   return Z;
@@ -52,12 +52,12 @@ Robot Robot::move(double turn, double forward) {
   }
   normal_distribution<double> distribution1(0.0, turn_noise);
   normal_distribution<double> distribution2(0.0, forward_noise);
-  double new_orientation = orientation + turn + distribution1(generator);
+  double new_orientation = orientation + turn + distribution1(get_engine());
   new_orientation = fmod(new_orientation, 2 * M_PI);
   if (new_orientation < 0) {
     new_orientation = 0.0;
   }
-  double dist = forward + distribution2(generator);
+  double dist = forward + distribution2(get_engine());
   double new_x = x + cos(orientation) * dist;
   double new_y = y + sin(orientation) * dist;
   new_x = fmod(new_x, world_size);
@@ -78,7 +78,7 @@ double Robot::measurement_prob(vector<double> measurement) {
   double prob = 1.0;
   for (int i = 0; i < (sizeof landmarks / sizeof landmarks[0]); i++) {
     double dist = sqrt((x - landmarks[i][0]) * (x - landmarks[i][0]) +
-                       (y - landmarks[i][1]) * (y - landmarks[i][1]));
+        (y - landmarks[i][1]) * (y - landmarks[i][1]));
     prob *= Gaussian(dist, sense_noise, measurement[i]);
   }
   return prob;
@@ -86,18 +86,18 @@ double Robot::measurement_prob(vector<double> measurement) {
 
 double Gaussian(double mu, double sigma, double x) {
   return exp(-((mu - x) * (mu - x)) / (sigma * sigma) / 2.0) /
-         sqrt(2.0 * M_PI * (sigma * sigma));
+      sqrt(2.0 * M_PI * (sigma * sigma));
 }
 
 double eval(Robot r, vector<Robot> p) {
   double sum = 0.0;
   for (int i = 0; i < p.size(); i++) {
     double dx = (p[i].x - r.x + fmod(world_size / 2.0, world_size) -
-                 (world_size / 2.0));
+        (world_size / 2.0));
     double dy = (p[i].y - r.y + fmod(world_size / 2.0, world_size) -
-                 (world_size / 2.0));
+        (world_size / 2.0));
     double err = sqrt(dx * dx + dy * dy);
     sum += err;
   }
-  return sum / (double)p.size();
+  return sum / (double) p.size();
 }
