@@ -36,7 +36,7 @@ int main() {
     }
 
     std::vector<Robot> p3;
-    int index = (int)(uniform_distribution(generator) * N);
+    int index = (int)(uniform_distribution_sample() * N);
     double beta = 0.0;
     double max_w = w[0];
     for (int l = 0; l < w.size(); l++) {
@@ -46,7 +46,7 @@ int main() {
     }
 
     for (int m = 0; m < N; m++) {
-      beta += uniform_distribution(generator) * 2.0 * max_w;
+      beta += uniform_distribution_sample()  * 2.0 * max_w;
       while (beta > w[index]) {
         beta -= w[index];
         index = (index + 1) % N;
