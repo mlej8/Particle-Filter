@@ -7,12 +7,19 @@
 #include "robot.h"
 
 int main() {
+  // physical robot (ground truth)
   Robot myrobot;
-  myrobot = myrobot.move(0.1, 5.0);
-  std::vector<double> Z = myrobot.sense();
+  
+  // list storing the distance of the physical robot to each obstacle
+  std::vector<double> Z;
+  
+  // number of particles
   int N = 1000;
+
+  // number of PF iterations
   int T = 10;
 
+  // initialize particles
   std::vector<Robot> p;
   for (int i = 0; i < N; i++) {
     Robot r;
@@ -20,24 +27,31 @@ int main() {
     p.push_back(r);
   }
 
+  // particle filter
   for (int j = 0; j < T; j++) {
+
+    // make our physical robot move (theta, distance)
     myrobot = myrobot.move(0.1, 5.0);
+
+    // detect its distance to the landmarks in our world (returns list of distance to each obstacle)
     Z = myrobot.sense();
 
+    
+    // make every particle do same movement as physical robot
     std::vector<Robot> p2;
     for (int k = 0; k < N; k++) {
       p2.push_back(p[k].move(0.1, 5.0));
     }
     p = p2;
 
+    // measure probability that each particle is the physical robot
     std::vector<double> w;
     for (int k = 0; k < N; k++) {
       w.push_back(p[k].measurement_prob(Z));
     }
 
-    std::vector<Robot> p3;
-    int index = (int)(uniform_distribution(generator) * N);
-    double beta = 0.0;
+    
+    // weight normalization step
     double max_w = w[0];
     for (int l = 0; l < w.size(); l++) {
       if (w[l] > max_w) {
@@ -45,6 +59,10 @@ int main() {
       }
     }
 
+    // resampling
+    std::vector<Robot> p3;
+    int index = (int)(uniform_distribution(generator) * N);
+    double beta = 0.0;
     for (int m = 0; m < N; m++) {
       beta += uniform_distribution(generator) * 2.0 * max_w;
       while (beta > w[index]) {
@@ -55,6 +73,7 @@ int main() {
     }
     p = p3;
 
+    // evaluation - measure distance of all particles to the actual robot
     cout << eval(myrobot, p) << endl;
   }
 

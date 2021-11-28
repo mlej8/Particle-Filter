@@ -9,9 +9,9 @@ Robot::Robot()
     : x(uniform_distribution(generator) * world_size),
       y(uniform_distribution(generator) * world_size),
       orientation(uniform_distribution(generator) * 2.0 * M_PI),
-      forward_noise(0.0),
-      turn_noise(0.0),
-      sense_noise(0.0) {}
+      forward_noise(0.05), 
+      turn_noise(0.05),
+      sense_noise(5.0) {}
 
 void Robot::set(double new_x, double new_y, double new_orientation) {
   if (new_x < 0 || new_x >= world_size) {
