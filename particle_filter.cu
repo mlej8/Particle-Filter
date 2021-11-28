@@ -78,7 +78,7 @@ int main(int argc, char *argv[]) {
     // generate the movement of the True robot
     double theta = 0.1;
     double distance = 5.0;
-    my_robot = my_robot.move(theta, distance);
+    my_robot.move(theta, distance);
     vector<double> Z = my_robot.sense();
     thrust::device_vector<double> Z_gpu(Z);
 

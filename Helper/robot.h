@@ -30,7 +30,7 @@ class Robot {
   void set(double new_x, double new_y, double new_orientation);
   void set_noise(double f_noise, double t_noise, double s_noise);
   vector<double> sense();
-  Robot move(double turn, double forward);
+  void move(double turn, double forward);
   double measurement_prob(std::vector<double> measurement);
   double eval(Robot r, std::vector<Robot> p, int counter);
 

@@ -46,32 +46,28 @@ vector<double> Robot::sense() {
   return Z;
 }
 
-Robot Robot::move(double turn, double forward) {
+void Robot::move(double turn, double forward) {
   if (forward < 0) {
     throw invalid_argument("Robot cant move backwards");
   }
   normal_distribution<double> distribution1(0.0, get_turn_noise());
   normal_distribution<double> distribution2(0.0, get_forward_noise());
-  double new_orientation = get_orientation() + turn + distribution1(get_engine());
-  new_orientation = fmod(new_orientation, 2 * M_PI);
-  if (new_orientation < 0) {
-    new_orientation = 0.0;
+  orientation = orientation + turn + distribution1(get_engine());
+  orientation = fmod(orientation, 2 * M_PI);
+  if (orientation < 0) {
+    orientation = 0.0;
   }
   double dist = forward + distribution2(get_engine());
-  double new_x = get_x() + cos(get_orientation()) * dist;
-  double new_y = get_y() + sin(get_orientation()) * dist;
-  new_x = fmod(new_x, world_size);
-  new_y = fmod(new_y, world_size);
-  if (new_x < 0) {
-    new_x = 0.0;
+  x = x + cos(orientation) * dist;
+  y = y + sin(orientation) * dist;
+  x = fmod(x, world_size);
+  y = fmod(y, world_size);
+  if (x < 0) {
+    x = 0.0;
   }
-  if (new_y < 0) {
-    new_y = 0.0;
+  if (y < 0) {
+    y = 0.0;
   }
-  Robot res;
-  res.set(new_x, new_y, new_orientation);
-  res.set_noise(get_forward_noise(), get_turn_noise(), get_sense_noise());
-  return res;
 }
 
 double Robot::measurement_prob(vector<double> measurement) {
