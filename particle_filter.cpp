@@ -45,14 +45,10 @@ int main(int argc, char *argv[]) {
     // detect its distance to the landmarks in our world (returns list of distance to each obstacle)
     Z = myrobot.sense();
 
-    
     // make every particle do same movement as physical robot
-    std::vector<Robot> p2;
     for (int k = 0; k < N; k++) {
       p[k].move(0.1, 5.0);
-      p2.push_back(p[k]);
     }
-    p = p2;
 
     // measure probability that each particle is the physical robot
     std::vector<double> w;
