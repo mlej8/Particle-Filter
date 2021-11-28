@@ -65,9 +65,10 @@ vector<double> Robot::sense() {
 __host__ __device__ 
 void Robot::move(double turn, double forward) {
   if (forward < 0) {
-    throw invalid_argument("Robot cant move backwards");
+    // throw invalid_argument("Robot cant move backwards");
+    forward = 0;
   }
-  normal_distribution<double> distribution1(0.0, get_turn_noise());
+  normal_distribution<double> distribution1(0.0, get_turn_noise()); // TODO use cuRAND instaed
   normal_distribution<double> distribution2(0.0, get_forward_noise());
   orientation = orientation + turn + distribution1(get_engine());
   orientation = fmod(orientation, 2 * M_PI);
@@ -87,7 +88,7 @@ void Robot::move(double turn, double forward) {
   }
 }
 
-__host__ __device__ 
+__host__ 
 double Robot::measurement_prob(vector<double> measurement) {
   double prob = 1.0;
   for (int i = 0; i < (sizeof landmarks / sizeof landmarks[0]); i++) {
@@ -104,7 +105,7 @@ __host__ __device__ double Gaussian(double mu, double sigma, double x) {
          sqrt(2.0 * M_PI * (sigma * sigma));
 }
 
-__host__ __device__ double eval(Robot r, vector<Robot> p) {
+__host__ double eval(Robot r, vector<Robot> p) {
   double sum = 0.0;
   for (int i = 0; i < p.size(); i++) {
     double dx = (p[i].get_x() - r.get_x() + fmod(world_size / 2.0, world_size) -

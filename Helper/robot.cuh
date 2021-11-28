@@ -18,8 +18,8 @@ class Robot {
   __host__ void set(double new_x, double new_y, double new_orientation);
   __host__ void set_noise(double f_noise, double t_noise, double s_noise);
   __host__ vector<double> sense();
-  __host__ __device__ Robot move(double turn, double forward);
-  __host__ __device__ double measurement_prob(std::vector<double> measurement);
+  __host__ __device__ void move(double turn, double forward);
+  __host__ double measurement_prob(std::vector<double> measurement);
   __host__ __device__ double eval(Robot r, std::vector<Robot> p, int counter);
 
   // getters and setters
@@ -46,6 +46,6 @@ class Robot {
 
 };
 
-double Gaussian(double mu, double sigma, double x);
-double eval(Robot r, vector<Robot> p);
+__host__ __device__ double Gaussian(double mu, double sigma, double x);
+__host__ double eval(Robot r, vector<Robot> p);
 #endif
