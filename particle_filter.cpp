@@ -40,7 +40,7 @@ int main(int argc, char *argv[]) {
   for (int j = 0; j < T; j++) {
 
     // make our physical robot move (theta, distance)
-    myrobot.move(0.1, 5.0);
+    myrobot.move(uniform_distribution_sample() * M_PI/2, (uniform_distribution_sample() * 9.0)+1);
 
     // detect its distance to the landmarks in our world (returns list of distance to each obstacle)
     Z = myrobot.sense();

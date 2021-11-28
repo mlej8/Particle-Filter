@@ -74,11 +74,7 @@ int main(int argc, char *argv[]) {
              cudaMemcpyHostToDevice);
 
   for (int j = 0; j < T; j++) {
-    // TODO here we are always turning by 0.1 and moving for 5 meters, randomly
-    // generate the movement of the True robot
-    double theta = 0.1;
-    double distance = 5.0;
-    my_robot.move(theta, distance);
+    myrobot.move(uniform_distribution_sample() * M_PI/2, (uniform_distribution_sample() * 9.0) + 1);
     vector<double> Z = my_robot.sense();
     thrust::device_vector<double> Z_gpu(Z);
 
