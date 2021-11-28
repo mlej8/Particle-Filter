@@ -1,7 +1,5 @@
-#include <cmath>
 #include <cstdlib>
 #include <iostream>
-#include <random>
 #include <vector>
 
 #include "robot.h"

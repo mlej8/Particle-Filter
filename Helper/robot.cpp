@@ -23,23 +23,23 @@ void Robot::set(double new_x, double new_y, double new_orientation) {
   if (new_orientation < 0 || new_orientation >= 2 * M_PI) {
     throw invalid_argument("Orientation must be in [0..2pi]");
   }
-  x = new_x;
-  y = new_y;
-  orientation = new_orientation;
+  set_x(new_x);
+  set_y(new_y);
+  set_orientation(new_orientation);
 }
 
 void Robot::set_noise(double f_noise, double t_noise, double s_noise) {
-  forward_noise = f_noise;
-  turn_noise = t_noise;
-  sense_noise = s_noise;
+  set_forward_noise(f_noise);
+  set_turn_noise(t_noise);
+  set_sense_noise(s_noise);
 }
 
 vector<double> Robot::sense() {
   vector<double> Z;
   for (int i = 0; i < (sizeof landmarks / sizeof landmarks[0]); i++) {
-    double dist = sqrt((x - landmarks[i][0]) * (x - landmarks[i][0]) +
-        (y - landmarks[i][1]) * (y - landmarks[i][1]));
-    normal_distribution<double> distribution(0.0, forward_noise);
+    double dist = sqrt((get_x() - landmarks[i][0]) * (get_x() - landmarks[i][0]) +
+        (get_y() - landmarks[i][1]) * (get_y() - landmarks[i][1]));
+    normal_distribution<double> distribution(0.0, get_forward_noise());
     dist += distribution(get_engine());
     Z.push_back(dist);
   }
@@ -50,16 +50,16 @@ Robot Robot::move(double turn, double forward) {
   if (forward < 0) {
     throw invalid_argument("Robot cant move backwards");
   }
-  normal_distribution<double> distribution1(0.0, turn_noise);
-  normal_distribution<double> distribution2(0.0, forward_noise);
-  double new_orientation = orientation + turn + distribution1(get_engine());
+  normal_distribution<double> distribution1(0.0, get_turn_noise());
+  normal_distribution<double> distribution2(0.0, get_forward_noise());
+  double new_orientation = get_orientation() + turn + distribution1(get_engine());
   new_orientation = fmod(new_orientation, 2 * M_PI);
   if (new_orientation < 0) {
     new_orientation = 0.0;
   }
   double dist = forward + distribution2(get_engine());
-  double new_x = x + cos(orientation) * dist;
-  double new_y = y + sin(orientation) * dist;
+  double new_x = get_x() + cos(get_orientation()) * dist;
+  double new_y = get_y() + sin(get_orientation()) * dist;
   new_x = fmod(new_x, world_size);
   new_y = fmod(new_y, world_size);
   if (new_x < 0) {
@@ -70,16 +70,16 @@ Robot Robot::move(double turn, double forward) {
   }
   Robot res;
   res.set(new_x, new_y, new_orientation);
-  res.set_noise(forward_noise, turn_noise, sense_noise);
+  res.set_noise(get_forward_noise(), get_turn_noise(), get_sense_noise());
   return res;
 }
 
 double Robot::measurement_prob(vector<double> measurement) {
   double prob = 1.0;
   for (int i = 0; i < (sizeof landmarks / sizeof landmarks[0]); i++) {
-    double dist = sqrt((x - landmarks[i][0]) * (x - landmarks[i][0]) +
-        (y - landmarks[i][1]) * (y - landmarks[i][1]));
-    prob *= Gaussian(dist, sense_noise, measurement[i]);
+    double dist = sqrt((get_x() - landmarks[i][0]) * (get_x() - landmarks[i][0]) +
+        (get_y() - landmarks[i][1]) * (get_y() - landmarks[i][1]));
+    prob *= Gaussian(dist, get_sense_noise(), measurement[i]);
   }
   return prob;
 }
@@ -92,12 +92,50 @@ double Gaussian(double mu, double sigma, double x) {
 double eval(Robot r, vector<Robot> p) {
   double sum = 0.0;
   for (int i = 0; i < p.size(); i++) {
-    double dx = (p[i].x - r.x + fmod(world_size / 2.0, world_size) -
+    double dx = (p[i].get_x() - r.get_x() + fmod(world_size / 2.0, world_size) -
         (world_size / 2.0));
-    double dy = (p[i].y - r.y + fmod(world_size / 2.0, world_size) -
+    double dy = (p[i].get_y() - r.get_y() + fmod(world_size / 2.0, world_size) -
         (world_size / 2.0));
     double err = sqrt(dx * dx + dy * dy);
     sum += err;
   }
   return sum / (double) p.size();
+}
+
+
+double Robot::get_x() const {
+  return x;
+}
+void Robot::set_x(double x) {
+  Robot::x = x;
+}
+double Robot::get_y() const {
+  return y;
+}
+void Robot::set_y(double y) {
+  Robot::y = y;
+}
+double Robot::get_orientation() const {
+  return orientation;
+}
+void Robot::set_orientation(double orientation) {
+  Robot::orientation = orientation;
+}
+double Robot::get_forward_noise() const {
+  return forward_noise;
+}
+void Robot::set_forward_noise(double forward_noise) {
+  Robot::forward_noise = forward_noise;
+}
+double Robot::get_turn_noise() const {
+  return turn_noise;
+}
+void Robot::set_turn_noise(double turn_noise) {
+  Robot::turn_noise = turn_noise;
+}
+double Robot::get_sense_noise() const {
+  return sense_noise;
+}
+void Robot::set_sense_noise(double sense_noise) {
+  Robot::sense_noise = sense_noise;
 }

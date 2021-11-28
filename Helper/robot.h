@@ -1,6 +1,7 @@
 #ifndef PARTICLE_FILTER_ROBOT_H_
 #define PARTICLE_FILTER_ROBOT_H_
 #include <vector>
+#include <random>
 
 using namespace std;
 
@@ -23,7 +24,6 @@ static double uniform_distribution_sample() {
   return uniform_distribution(get_engine());
 }
 
-
 class Robot {
  public:
   Robot();
@@ -34,13 +34,28 @@ class Robot {
   double measurement_prob(std::vector<double> measurement);
   double eval(Robot r, std::vector<Robot> p, int counter);
 
-  // TODO make these private with getters and setters
+//  getters and setters
+  double get_x() const;
+  void set_x(double x);
+  double get_y() const;
+  void set_y(double y);
+  double get_orientation() const;
+  void set_orientation(double orientation);
+  double get_forward_noise() const;
+  void set_forward_noise(double forward_noise);
+  double get_turn_noise() const;
+  void set_turn_noise(double turn_noise);
+  double get_sense_noise() const;
+  void set_sense_noise(double sense_noise);
+
+ private:
   double x;
   double y;
   double orientation;
   double forward_noise;
   double turn_noise;
   double sense_noise;
+
 };
 
 double Gaussian(double mu, double sigma, double x);
