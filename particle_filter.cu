@@ -15,8 +15,8 @@ using namespace std;
  * Simulate robot motion for each particle and perform importance weight
  * computation
  */
-__global__ void particle_filter(Robot *particles, double *weights, double theta,
-                                double distance, int N, double *Z_gpu, int num_landmarks, const double * landmarks) {
+__global__ void particle_filter(Robot *particles, double *weights, const double theta,
+                                const double distance, const int N, const double *Z_gpu, const int num_landmarks, const double * landmarks) {
   int index = threadIdx.x + blockDim.x * blockIdx.x;
   if (index < N) {
     particles[index].move(theta, distance);
@@ -51,8 +51,9 @@ int main(int argc, char *argv[]) {
   int block_size = atoi(argv[3]);
   size_t num_block = (N + block_size - 1) / block_size;
   size_t particles_size = N * sizeof(Robot);
-  // size_t num_obstacles = sizeof landmarks > 0 ? sizeof landmarks / sizeof
-  // landmarks[0] : sizeof landmarks;
+  int num_landmarks = sizeof(landmarks) / sizeof(landmarks[0]); 
+  int landmark_dim = sizeof(landmarks[0]) / sizeof(double); 
+  size_t landmark_size = sizeof(double) * num_landmarks * landmark_dim;
 
   // initialize N random particles (robots)
   // list of particles  (guesses as to where the robot might be - each particle
@@ -63,8 +64,8 @@ int main(int argc, char *argv[]) {
   thrust::device_vector<double> weights_gpu(N);
   thrust::host_vector<double> weights(N);
   double *landmarks_gpu;
-  cudaMalloc(&landmarks_gpu, sizeof(landmarks));
-  cudaMemcpy(landmarks_gpu, landmarks, sizeof(landmarks),
+  cudaMalloc(&landmarks_gpu, landmark_size);
+  cudaMemcpy(landmarks_gpu, landmarks, landmark_size,
            cudaMemcpyHostToDevice);
 
   // copy those particles on the GPU
