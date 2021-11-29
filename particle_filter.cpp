@@ -6,6 +6,8 @@
 #include "robot.h"
 
 int main(int argc, char *argv[]) {
+  auto start = std::chrono::high_resolution_clock::now();
+
   if (argc == 2 || argc > 3) {
     cout
         << "Usage: ./particle_filter_cpu <optional:number_iteration (default:1000)> <optional:number_particles (default:10)>"
@@ -38,7 +40,6 @@ int main(int argc, char *argv[]) {
   }
 
   // particle filter
-  auto start = std::chrono::high_resolution_clock::now();
 
   for (int j = 0; j < T; j++) {
 

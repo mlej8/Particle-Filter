@@ -6,6 +6,7 @@
 #include <iostream>
 #include <random>
 #include <vector>
+#include <chrono>
 
 #include "robot.cuh"
 
@@ -36,14 +37,15 @@ __global__ void particle_filter(Robot *particles, double *weights,
 }
 int main(int argc, char *argv[]) {
   // physical robot (ground truth)
-  Robot my_robot;
-
+  auto start = chrono::high_resolution_clock::now();
   if (argc != 4) {
     cout << "Usage: ./particle_filter_gpu <number of particles> <number of "
             "iterations of particle filtering> <number of threads per block>"
          << endl;
     exit(1);
   }
+
+  Robot my_robot;
 
   // number of particles (TODO: set default to 1000)
   int N = atoi(argv[1]);
@@ -111,11 +113,14 @@ int main(int argc, char *argv[]) {
     cudaMemcpy(particles_gpu, particles.data(), particles_size,
                cudaMemcpyHostToDevice);
 
-    cout << eval(my_robot, particles) << endl;
+//    cout << eval(my_robot, particles) << endl;
   }
 
   cudaFree(particles_gpu);
   cudaFree(landmarks_gpu);
+  auto finish = chrono::high_resolution_clock::now();
+  std::cout << block_size << "," << N << "," << chrono::duration_cast<chrono::nanoseconds>(finish - start).count()
+            << "\n";
 
   return 0;
 }
