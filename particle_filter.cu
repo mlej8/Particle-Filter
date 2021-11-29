@@ -6,6 +6,7 @@
 #include <iostream>
 #include <random>
 #include <vector>
+#include <chrono>
 
 #include "robot.cuh"
 
@@ -19,16 +20,16 @@ __global__ void particle_filter(Robot *particles, double *weights,
                                 const double theta, const double distance,
                                 const int N, const double *Z_gpu,
                                 const int num_landmarks,
-                                const double *landmarks) {
+                                const double *landmarks_gpu) {
   int index = threadIdx.x + blockDim.x * blockIdx.x;
   if (index < N) {
     particles[index].move(theta, distance);
     double prob = 1.0;
     for (int i = 0; i < num_landmarks; i++) {
-      double dist = sqrt((particles[index].get_x() - landmarks[i * 2 + 0]) *
-                             (particles[index].get_x() - landmarks[i * 2 + 0]) +
-                         (particles[index].get_y() - landmarks[i * 2 + 1]) *
-                             (particles[index].get_y() - landmarks[i * 2 + 1]));
+      double dist = sqrt((particles[index].get_x() - landmarks_gpu[i * 2 + 0]) *
+          (particles[index].get_x() - landmarks_gpu[i * 2 + 0]) +
+          (particles[index].get_y() - landmarks_gpu[i * 2 + 1]) *
+              (particles[index].get_y() - landmarks_gpu[i * 2 + 1]));
       prob *= Gaussian(dist, particles[index].get_sense_noise(), Z_gpu[i]);
     }
     weights[index] = prob;
@@ -36,14 +37,15 @@ __global__ void particle_filter(Robot *particles, double *weights,
 }
 int main(int argc, char *argv[]) {
   // physical robot (ground truth)
-  Robot my_robot;
-
+  auto start = chrono::high_resolution_clock::now();
   if (argc != 4) {
     cout << "Usage: ./particle_filter_gpu <number of particles> <number of "
             "iterations of particle filtering> <number of threads per block>"
          << endl;
     exit(1);
   }
+
+  Robot my_robot;
 
   // number of particles (TODO: set default to 1000)
   int N = atoi(argv[1]);
@@ -97,7 +99,7 @@ int main(int argc, char *argv[]) {
 
     // resampling
     vector<Robot> new_particles;
-    int index = (int)(uniform_distribution_sample() * N);
+    int index = (int) (uniform_distribution_sample() * N);
     double beta = 0.0;
     for (int m = 0; m < N; m++) {
       beta += uniform_distribution_sample() * 2.0 * max_w;
@@ -111,9 +113,14 @@ int main(int argc, char *argv[]) {
     cudaMemcpy(particles_gpu, particles.data(), particles_size,
                cudaMemcpyHostToDevice);
 
-    cout << eval(my_robot, particles) << endl;
+//    cout << eval(my_robot, particles) << endl;
   }
 
   cudaFree(particles_gpu);
+  cudaFree(landmarks_gpu);
+  auto finish = chrono::high_resolution_clock::now();
+  std::cout << block_size << "," << N << "," << chrono::duration_cast<chrono::nanoseconds>(finish - start).count()
+            << "\n";
+
   return 0;
 }
