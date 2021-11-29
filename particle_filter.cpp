@@ -6,81 +6,86 @@
 
 int main(int argc, char *argv[]) {
   if (argc == 2 || argc > 3) {
-    cout
-        << "Usage: ./particle_filter_cpu <optional:number_iteration (default:1000)> <optional:number_particles (default:10)>"
-        << endl;
+    cout << "Usage: ./particle_filter_cpu <optional:number_iteration "
+            "(default:1000)> <optional:number_particles (default:10)>"
+         << endl;
     exit(1);
   }
 
   // physical robot (ground truth)
   Robot myrobot;
-  
+
   // list storing the distance of the physical robot to each obstacle
-  std::vector<double> Z;
-  
+  vector<double> Z;
+
   // number of particles
   int N = 1000;
 
   // number of PF iterations
   int T = 10;
+
   if (argc == 3) {
     N = atoi(argv[1]);
     T = atoi(argv[2]);
   }
 
   // initialize particles
-  std::vector<Robot> p;
-  for (int i = 0; i < N; i++) {
-    Robot r;
-    r.set_noise(0.05, 0.05, 5.0);
-    p.push_back(r);
-  }
+  vector<Robot> particles(N);
 
   // particle filter
   for (int j = 0; j < T; j++) {
-
     // make our physical robot move (theta, distance)
-    double theta = uniform_distribution_sample() * M_PI/2;
-    double distance = (uniform_distribution_sample() * 9.0)+1;
+    double theta = uniform_distribution_sample() * M_PI / 2;
+    double distance = (uniform_distribution_sample() * 9.0) + 1;
     myrobot.move(theta, distance);
 
-    // detect its distance to the landmarks in our world (returns list of distance to each obstacle)
+    // detect its distance to the landmarks in our world (returns list of
+    // distance to each obstacle)
     Z = myrobot.sense();
 
-    // make every particle do same movement as physical robot
+    vector<double> w(N);
     for (int k = 0; k < N; k++) {
-      p[k].move(theta, distance);
+      // make every particle do same movement as physical robot
+      particles[k].move(theta, distance);
+
+      // measure probability that the particle is the physical robot
+      w[k] = particles[k].measurement_prob(Z);
     }
 
-    // measure probability that each particle is the physical robot
-    std::vector<double> w;
+    // weight summation
+    double weight_sum = 0.0;
+    for (auto weight : w) weight_sum += weight;
+
+    // weight normalization
     for (int k = 0; k < N; k++) {
-      w.push_back(p[k].measurement_prob(Z));
+      w[k] /= weight_sum;
     }
 
-    std::vector<Robot> p3;
-    int index = (int) (uniform_distribution_sample() * N);
-    double beta = 0.0;
-    double max_w = w[0];
-    for (int l = 0; l < w.size(); l++) {
-      if (w[l] > max_w) {
-        max_w = w[l];
-      }
+    // compute cumulative distribution function (CDF)
+    vector<double> cdf(N);
+    double running_sum = 0;
+    for (int k = 0; k < N; k++) {
+      cdf[k] = w[k] + running_sum;
+      running_sum += w[k];
     }
 
-    // resampling
-    for (int m = 0; m < N; m++) {
-      beta += uniform_distribution_sample() * 2.0 * max_w;
-      while (beta > w[index]) {
-        beta -= w[index];
-        index = (index + 1) % N;
+    int k = 0;
+    auto u = [&N](int n) {
+      return (((n - 1) + uniform_distribution_sample()) / N);
+    };
+
+    // systematic resampling of new particles
+    vector<Robot> new_particles;
+    for (int i = 1; i <= N; i++) {
+      while (cdf[k] < u(i)) {
+        k += 1;
       }
-      p3.push_back(p[index]);
+      new_particles.push_back(particles[k]);
     }
-    p = p3;
+    particles = new_particles;
 
     // evaluation - measure distance of all particles to the actual robot
-    cout << eval(myrobot, p) << endl;
+    cout << eval(myrobot, particles) << endl;
   }
 
   return 0;
