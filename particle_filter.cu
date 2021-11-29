@@ -111,6 +111,7 @@ int main(int argc, char *argv[]) {
     double weights_sum = thrust::reduce(weights_gpu.begin(), weights_gpu.end()); // , thrust::plus<double>()
 
     weight_normalization<<<num_block, block_size>>>(thrust::raw_pointer_cast(weights_gpu.data()), weights_sum, N);
+    cudaDeviceSynchronize();
 
     // copying normalized particles' weights from GPU to CPU
     thrust::copy(weights_gpu.begin(), weights_gpu.end(), weights.begin());
