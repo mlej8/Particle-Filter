@@ -19,7 +19,7 @@ for file in files:
         for row in row_interest:
             if row in e:
                 res = {}
-                res['Method'] = " ".join(file.stem.split("_")[:-2])
+                res['Method'] = file.stem.replace("_", " ")
                 subs = e.replace(row, "").split()
                 subs.append(row_interest[row])
                 if len(subs) != len(nsys_columns)-1:
@@ -29,7 +29,7 @@ for file in files:
 
 r = result.sort_values(by=["Method", 'Operation'])
 r.to_csv("Profiling/parallel.csv", index=False)
-# df = pd.read_csv("parallel.csv", thousands=",")
-# df['Method'] = df['Method'].apply(lambda x: " ".join(x.split()[:-2]))
-# df = df.groupby(['Method', 'Operation']).mean().reset_index()
-# df.to_csv("summary.csv", index=False)
+df = pd.read_csv("Profiling/parallel.csv", thousands=",")
+df['Method'] = df['Method'].apply(lambda x: " ".join(x.split()[:-2]))
+df = df.groupby(['Method', 'Operation']).mean().reset_index()
+df.to_csv("Profiling/parallel_summary.csv", index=False)
