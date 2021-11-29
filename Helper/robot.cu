@@ -1,9 +1,11 @@
-#include <random>
-#include <stdexcept>
 #include <curand.h>
 #include <curand_kernel.h>
-#include "robot.cuh"
 #include <thrust/random.h>
+
+#include <random>
+#include <stdexcept>
+
+#include "robot.cuh"
 
 using namespace std;
 
@@ -27,8 +29,7 @@ Robot::Robot()
       turn_noise(0.05),
       sense_noise(5.0) {}
 
-__host__ 
-void Robot::set(double new_x, double new_y, double new_orientation) {
+__host__ void Robot::set(double new_x, double new_y, double new_orientation) {
   if (new_x < 0 || new_x >= world_size) {
     throw invalid_argument("X coordinate out of bound");
   }
@@ -43,15 +44,13 @@ void Robot::set(double new_x, double new_y, double new_orientation) {
   set_orientation(new_orientation);
 }
 
-__host__ 
-void Robot::set_noise(double f_noise, double t_noise, double s_noise) {
+__host__ void Robot::set_noise(double f_noise, double t_noise, double s_noise) {
   set_forward_noise(f_noise);
   set_turn_noise(t_noise);
   set_sense_noise(s_noise);
 }
 
-__host__ 
-vector<double> Robot::sense() {
+__host__ vector<double> Robot::sense() {
   vector<double> Z;
   for (int i = 0; i < (sizeof landmarks / sizeof landmarks[0]); i++) {
     double dist =
@@ -64,18 +63,20 @@ vector<double> Robot::sense() {
   return Z;
 }
 
-__host__ __device__
-void Robot::move(double turn, double forward) {
+__host__ __device__ void Robot::move(double turn, double forward) {
   if (forward < 0) {
     // throw invalid_argument("Robot cant move backwards");
     forward = 0;
   }
 
-//  TODO we can make a  random generator from different seeds
+  //  TODO we can make a  random generator from different seeds
   thrust::default_random_engine gen;
-//  see https://thrust.github.io/doc/classthrust_1_1random_1_1normal__distribution_a0c00f49ae6a01e0997e6871a054c61cc.html#a0c00f49ae6a01e0997e6871a054c61cc
-  thrust::random::normal_distribution< double > distribution1(0.5, get_turn_noise());
-  thrust::random::normal_distribution< double > distribution2(0.5, get_forward_noise());
+  //  see
+  //  https://thrust.github.io/doc/classthrust_1_1random_1_1normal__distribution_a0c00f49ae6a01e0997e6871a054c61cc.html#a0c00f49ae6a01e0997e6871a054c61cc
+  thrust::random::normal_distribution<double> distribution1(0.5,
+                                                            get_turn_noise());
+  thrust::random::normal_distribution<double> distribution2(
+      0.5, get_forward_noise());
 
   orientation = orientation + turn + distribution1(gen);
   orientation = fmod(orientation, 2 * M_PI);
@@ -95,8 +96,7 @@ void Robot::move(double turn, double forward) {
   }
 }
 
-__host__ 
-double Robot::measurement_prob(vector<double> measurement) {
+__host__ double Robot::measurement_prob(vector<double> measurement) {
   double prob = 1.0;
   for (int i = 0; i < (sizeof landmarks / sizeof landmarks[0]); i++) {
     double dist =

@@ -1,11 +1,13 @@
 #ifndef PARTICLE_FILTER_ROBOT_H_
 #define PARTICLE_FILTER_ROBOT_H_
-#include <vector>
 #include <random>
+#include <vector>
 
 using namespace std;
 
-const double landmarks[4][2] = {
+#define COLS 2
+#define ROWS 4
+const double landmarks[ROWS][COLS] = {
     {20.0, 20.0}, {80.0, 80.0}, {20.0, 80.0}, {80.0, 20.0}};
 const double world_size = 100;
 
@@ -40,7 +42,6 @@ class Robot {
   double forward_noise;
   double turn_noise;
   double sense_noise;
-
 };
 
 __host__ __device__ double Gaussian(double mu, double sigma, double x);

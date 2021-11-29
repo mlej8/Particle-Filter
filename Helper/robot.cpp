@@ -1,7 +1,7 @@
+#include "robot.h"
+
 #include <random>
 #include <stdexcept>
-
-#include "robot.h"
 
 using namespace std;
 
@@ -9,7 +9,7 @@ Robot::Robot()
     : x(uniform_distribution_sample() * world_size),
       y(uniform_distribution_sample() * world_size),
       orientation(uniform_distribution_sample() * 2.0 * M_PI),
-      forward_noise(0.05), 
+      forward_noise(0.05),
       turn_noise(0.05),
       sense_noise(5.0) {}
 
@@ -37,8 +37,9 @@ void Robot::set_noise(double f_noise, double t_noise, double s_noise) {
 vector<double> Robot::sense() {
   vector<double> Z;
   for (int i = 0; i < (sizeof landmarks / sizeof landmarks[0]); i++) {
-    double dist = sqrt((get_x() - landmarks[i][0]) * (get_x() - landmarks[i][0]) +
-        (get_y() - landmarks[i][1]) * (get_y() - landmarks[i][1]));
+    double dist =
+        sqrt((get_x() - landmarks[i][0]) * (get_x() - landmarks[i][0]) +
+             (get_y() - landmarks[i][1]) * (get_y() - landmarks[i][1]));
     normal_distribution<double> distribution(0.0, get_forward_noise());
     dist += distribution(get_engine());
     Z.push_back(dist);
@@ -73,8 +74,9 @@ void Robot::move(double turn, double forward) {
 double Robot::measurement_prob(vector<double> measurement) {
   double prob = 1.0;
   for (int i = 0; i < (sizeof landmarks / sizeof landmarks[0]); i++) {
-    double dist = sqrt((get_x() - landmarks[i][0]) * (get_x() - landmarks[i][0]) +
-        (get_y() - landmarks[i][1]) * (get_y() - landmarks[i][1]));
+    double dist =
+        sqrt((get_x() - landmarks[i][0]) * (get_x() - landmarks[i][0]) +
+             (get_y() - landmarks[i][1]) * (get_y() - landmarks[i][1]));
     prob *= Gaussian(dist, get_sense_noise(), measurement[i]);
   }
   return prob;
@@ -82,56 +84,39 @@ double Robot::measurement_prob(vector<double> measurement) {
 
 double Gaussian(double mu, double sigma, double x) {
   return exp(-((mu - x) * (mu - x)) / (sigma * sigma) / 2.0) /
-      sqrt(2.0 * M_PI * (sigma * sigma));
+         sqrt(2.0 * M_PI * (sigma * sigma));
 }
 
 double eval(Robot r, vector<Robot> p) {
   double sum = 0.0;
   for (int i = 0; i < p.size(); i++) {
     double dx = (p[i].get_x() - r.get_x() + fmod(world_size / 2.0, world_size) -
-        (world_size / 2.0));
+                 (world_size / 2.0));
     double dy = (p[i].get_y() - r.get_y() + fmod(world_size / 2.0, world_size) -
-        (world_size / 2.0));
+                 (world_size / 2.0));
     double err = sqrt(dx * dx + dy * dy);
     sum += err;
   }
-  return sum / (double) p.size();
+  return sum / (double)p.size();
 }
 
-
-double Robot::get_x() const {
-  return x;
-}
-void Robot::set_x(double x) {
-  Robot::x = x;
-}
-double Robot::get_y() const {
-  return y;
-}
-void Robot::set_y(double y) {
-  Robot::y = y;
-}
-double Robot::get_orientation() const {
-  return orientation;
-}
+double Robot::get_x() const { return x; }
+void Robot::set_x(double x) { Robot::x = x; }
+double Robot::get_y() const { return y; }
+void Robot::set_y(double y) { Robot::y = y; }
+double Robot::get_orientation() const { return orientation; }
 void Robot::set_orientation(double orientation) {
   Robot::orientation = orientation;
 }
-double Robot::get_forward_noise() const {
-  return forward_noise;
-}
+double Robot::get_forward_noise() const { return forward_noise; }
 void Robot::set_forward_noise(double forward_noise) {
   Robot::forward_noise = forward_noise;
 }
-double Robot::get_turn_noise() const {
-  return turn_noise;
-}
+double Robot::get_turn_noise() const { return turn_noise; }
 void Robot::set_turn_noise(double turn_noise) {
   Robot::turn_noise = turn_noise;
 }
-double Robot::get_sense_noise() const {
-  return sense_noise;
-}
+double Robot::get_sense_noise() const { return sense_noise; }
 void Robot::set_sense_noise(double sense_noise) {
   Robot::sense_noise = sense_noise;
 }

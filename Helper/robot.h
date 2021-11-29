@@ -1,14 +1,13 @@
 #ifndef PARTICLE_FILTER_ROBOT_H_
 #define PARTICLE_FILTER_ROBOT_H_
-#include <vector>
 #include <random>
+#include <vector>
 
 using namespace std;
 
 const double landmarks[4][2] = {
     {20.0, 20.0}, {80.0, 80.0}, {20.0, 80.0}, {80.0, 20.0}};
 const double world_size = 100;
-
 
 static default_random_engine &get_engine() {
   // Initialized upon first call to the function.
@@ -32,7 +31,7 @@ class Robot {
   double measurement_prob(std::vector<double> measurement);
   double eval(Robot r, std::vector<Robot> p, int counter);
 
-//  getters and setters
+  //  getters and setters
   double get_x() const;
   void set_x(double x);
   double get_y() const;
@@ -53,7 +52,6 @@ class Robot {
   double forward_noise;
   double turn_noise;
   double sense_noise;
-
 };
 
 double Gaussian(double mu, double sigma, double x);
