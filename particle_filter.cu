@@ -15,8 +15,11 @@ using namespace std;
  * Simulate robot motion for each particle and perform importance weight
  * computation
  */
-__global__ void particle_filter(Robot *particles, double *weights, const double theta,
-                                const double distance, const int N, const double *Z_gpu, const int num_landmarks, const double * landmarks) {
+__global__ void particle_filter(Robot *particles, double *weights,
+                                const double theta, const double distance,
+                                const int N, const double *Z_gpu,
+                                const int num_landmarks,
+                                const double *landmarks) {
   int index = threadIdx.x + blockDim.x * blockIdx.x;
   if (index < N) {
     particles[index].move(theta, distance);
@@ -51,8 +54,8 @@ int main(int argc, char *argv[]) {
   int block_size = atoi(argv[3]);
   size_t num_block = (N + block_size - 1) / block_size;
   size_t particles_size = N * sizeof(Robot);
-  int num_landmarks = sizeof(landmarks) / sizeof(landmarks[0]); 
-  int landmark_dim = sizeof(landmarks[0]) / sizeof(double); 
+  int num_landmarks = sizeof(landmarks) / sizeof(landmarks[0]);
+  int landmark_dim = sizeof(landmarks[0]) / sizeof(double);
   size_t landmark_size = sizeof(double) * num_landmarks * landmark_dim;
 
   // initialize N random particles (robots)
@@ -65,8 +68,7 @@ int main(int argc, char *argv[]) {
   thrust::host_vector<double> weights(N);
   double *landmarks_gpu;
   cudaMalloc(&landmarks_gpu, landmark_size);
-  cudaMemcpy(landmarks_gpu, landmarks, landmark_size,
-           cudaMemcpyHostToDevice);
+  cudaMemcpy(landmarks_gpu, landmarks, landmark_size, cudaMemcpyHostToDevice);
 
   // copy those particles on the GPU
   cudaMalloc(&particles_gpu, particles_size);
@@ -75,33 +77,40 @@ int main(int argc, char *argv[]) {
              cudaMemcpyHostToDevice);
 
   for (int j = 0; j < T; j++) {
-    double theta = uniform_distribution_sample() * M_PI/2;
+    double theta = uniform_distribution_sample() * M_PI / 2;
     double distance = (uniform_distribution_sample() * 9.0) + 1;
-    my_robot.move(theta,distance);
+    my_robot.move(theta, distance);
     vector<double> Z = my_robot.sense();
     thrust::device_vector<double> Z_gpu(Z);
 
     particle_filter<<<num_block, block_size>>>(
-        particles_gpu, thrust::raw_pointer_cast(weights_gpu.data()), theta, distance, N,
-        thrust::raw_pointer_cast(Z_gpu.data()), Z.size(), landmarks_gpu);
+        particles_gpu, thrust::raw_pointer_cast(weights_gpu.data()), theta,
+        distance, N, thrust::raw_pointer_cast(Z_gpu.data()), Z.size(),
+        landmarks_gpu);
     cudaDeviceSynchronize();
 
+    thrust::copy(weights_gpu.begin(), weights_gpu.end(), weights.begin());
+    double max_w = *(thrust::max_element(weights.begin(), weights.end()));
+
+    cudaMemcpy(particles.data(), particles_gpu, particles_size,
+               cudaMemcpyDeviceToHost);
+
     // resampling
+    vector<Robot> new_particles;
     int index = (int)(uniform_distribution_sample() * N);
     double beta = 0.0;
-    thrust::copy(weights_gpu.begin(), weights_gpu.end(), weights.begin());
-
-    double max_w = *(thrust::max_element(weights.begin(), weights.end()));
     for (int m = 0; m < N; m++) {
       beta += uniform_distribution_sample() * 2.0 * max_w;
       while (beta > weights[index]) {
         beta -= weights[index];
         index = (index + 1) % N;
       }
+      new_particles.push_back(particles[index]);
     }
+    particles = new_particles;
+    cudaMemcpy(particles_gpu, particles.data(), particles_size,
+               cudaMemcpyHostToDevice);
 
-    cudaMemcpy(particles.data(), particles_gpu, particles_size,
-               cudaMemcpyDeviceToHost);
     cout << eval(my_robot, particles) << endl;
   }
 
