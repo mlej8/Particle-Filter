@@ -78,7 +78,7 @@ int main(int argc, char *argv[]) {
       return (((n - 1) + uniform_distribution_sample()) / N);
     };
 
-    // systematic resampling of new particles
+    // systematic_sampling resampling of new particles
     vector<Robot> new_particles;
     for (int i = 1; i <= N; i++) {
       while (cdf[k] < u(i)) {
