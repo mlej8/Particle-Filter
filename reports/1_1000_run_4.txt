@@ -1,0 +1,67 @@
+Generating SQLite file tmp/1_1000_run_4.sqlite from tmp/1_1000_run_4.qdrep
+Using tmp/1_1000_run_4.sqlite export for stats reports.
+Exporting [/usr/local/cuda-11.2/nsight-systems-2020.4.3/target-linux-x64/reports/cudaapisum.py tmp/1_1000_run_4.sqlite] to console... 
+
+ Time(%)  Total Time (ns)  Num Calls    Average    Minimum    Maximum            Name         
+ -------  ---------------  ---------  -----------  -------  -----------  ---------------------
+    98.2      103,487,650         18  5,749,313.9    2,330  103,440,550  cudaMalloc           
+     1.0        1,041,872         15     69,458.1   68,561       71,220  cudaDeviceSynchronize
+     0.3          296,980         32      9,280.6    6,250       14,210  cudaMemcpy           
+     0.2          189,130         30      6,304.3    3,070       12,790  cudaMemcpyAsync      
+     0.1          111,850         31      3,608.1      660       35,080  cudaStreamSynchronize
+     0.1          109,420         18      6,078.9    2,010       60,560  cudaFree             
+     0.1           97,050         16      6,065.6    4,950       15,800  cudaLaunchKernel     
+
+Exporting [/usr/local/cuda-11.2/nsight-systems-2020.4.3/target-linux-x64/reports/gpukernsum.py tmp/1_1000_run_4.sqlite] to console... 
+
+ Time(%)  Total Time (ns)  Instances  Average   Minimum  Maximum                                                  Name                                                
+ -------  ---------------  ---------  --------  -------  -------  ----------------------------------------------------------------------------------------------------
+    96.7        1,002,189         15  66,812.6   66,272   69,025  particle_filter(Robot*, double*, double, double, int, double const*, int, double const*)            
+     3.3           33,953          1  33,953.0   33,953   33,953  void thrust::cuda_cub::core::_kernel_agent<thrust::cuda_cub::__parallel_for::ParallelForAgent<thrus…
+
+Exporting [/usr/local/cuda-11.2/nsight-systems-2020.4.3/target-linux-x64/reports/gpumemtimesum.py tmp/1_1000_run_4.sqlite] to console... 
+
+ Time(%)  Total Time (ns)  Operations  Average  Minimum  Maximum      Operation     
+ -------  ---------------  ----------  -------  -------  -------  ------------------
+    55.2           71,874          32  2,246.1      800    3,904  [CUDA memcpy HtoD]
+    44.8           58,431          30  1,947.7    1,184    2,976  [CUDA memcpy DtoH]
+
+Exporting [/usr/local/cuda-11.2/nsight-systems-2020.4.3/target-linux-x64/reports/gpumemsizesum.py tmp/1_1000_run_4.sqlite] to console... 
+
+  Total   Operations  Average  Minimum  Maximum      Operation     
+ -------  ----------  -------  -------  -------  ------------------
+ 820.313          30   27.344    7.813   46.875  [CUDA memcpy DtoH]
+ 750.531          32   23.454    0.031   46.875  [CUDA memcpy HtoD]
+
+Exporting [/usr/local/cuda-11.2/nsight-systems-2020.4.3/target-linux-x64/reports/osrtsum.py tmp/1_1000_run_4.sqlite] to console... 
+
+ Time(%)  Total Time (ns)  Num Calls    Average    Minimum   Maximum         Name     
+ -------  ---------------  ---------  -----------  -------  ----------  --------------
+    58.1      100,278,574         12  8,356,547.8    9,221  45,063,823  poll          
+    27.4       47,313,620        554     85,403.6    1,010  12,593,873  ioctl         
+    13.1       22,682,701         22  1,031,031.9    1,070  22,624,551  fopen         
+     0.6        1,046,162         64     16,346.3    2,430     281,751  mmap64        
+     0.3          462,330         76      6,083.3    2,670      11,850  open64        
+     0.2          279,330          9     31,036.7    1,440     177,840  fread         
+     0.1          195,072          9     21,674.7    5,220     116,801  sem_timedwait 
+     0.1          130,840          5     26,168.0   21,440      37,510  pthread_create
+     0.0           60,750         14      4,339.3    1,210      17,350  mmap          
+     0.0           31,810         15      2,120.7    1,760       4,400  putc          
+     0.0           31,640          1     31,640.0   31,640      31,640  fgets         
+     0.0           20,590         11      1,871.8    1,070       3,070  write         
+     0.0           17,790          5      3,558.0    1,910       5,070  open          
+     0.0           10,990          5      2,198.0    1,360       3,220  munmap        
+     0.0           10,810          3      3,603.3    1,200       6,720  fgetc         
+     0.0            6,810          4      1,702.5    1,130       2,300  fclose        
+     0.0            5,470          2      2,735.0    2,140       3,330  socket        
+     0.0            4,770          3      1,590.0    1,120       2,380  fcntl         
+     0.0            3,850          1      3,850.0    3,850       3,850  pipe2         
+     0.0            3,500          1      3,500.0    3,500       3,500  connect       
+     0.0            1,430          1      1,430.0    1,430       1,430  fwrite        
+     0.0            1,410          1      1,410.0    1,410       1,410  read          
+     0.0            1,070          1      1,070.0    1,070       1,070  bind          
+
+Exporting [/usr/local/cuda-11.2/nsight-systems-2020.4.3/target-linux-x64/reports/nvtxppsum.py tmp/1_1000_run_4.sqlite] to console... SKIPPED: tmp/1_1000_run_4.sqlite does not contain NV Tools Extension (NVTX) data
+
+Exporting [/usr/local/cuda-11.2/nsight-systems-2020.4.3/target-linux-x64/reports/openmpevtsum.py tmp/1_1000_run_4.sqlite] to console... SKIPPED: tmp/1_1000_run_4.sqlite does not contain OpenMP event data.
+

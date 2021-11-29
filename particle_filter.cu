@@ -19,17 +19,16 @@ __global__ void particle_filter(Robot *particles, double *weights,
                                 const double theta, const double distance,
                                 const int N, const double *Z_gpu,
                                 const int num_landmarks,
-                                const double *landmarks) {
+                                const double *landmarks_gpu) {
   int index = threadIdx.x + blockDim.x * blockIdx.x;
   if (index < N) {
-    printf("???");
     particles[index].move(theta, distance);
     double prob = 1.0;
     for (int i = 0; i < num_landmarks; i++) {
-      double dist = sqrt((particles[index].get_x() - landmarks[i * 2 + 0]) *
-          (particles[index].get_x() - landmarks[i * 2 + 0]) +
-          (particles[index].get_y() - landmarks[i * 2 + 1]) *
-              (particles[index].get_y() - landmarks[i * 2 + 1]));
+      double dist = sqrt((particles[index].get_x() - landmarks_gpu[i * 2 + 0]) *
+          (particles[index].get_x() - landmarks_gpu[i * 2 + 0]) +
+          (particles[index].get_y() - landmarks_gpu[i * 2 + 1]) *
+              (particles[index].get_y() - landmarks_gpu[i * 2 + 1]));
       prob *= Gaussian(dist, particles[index].get_sense_noise(), Z_gpu[i]);
     }
     weights[index] = prob;
@@ -116,5 +115,7 @@ int main(int argc, char *argv[]) {
   }
 
   cudaFree(particles_gpu);
+  cudaFree(landmarks_gpu);
+
   return 0;
 }
