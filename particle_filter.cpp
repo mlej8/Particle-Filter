@@ -1,6 +1,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <vector>
+#include <chrono>
 
 #include "robot.h"
 
@@ -37,6 +38,8 @@ int main(int argc, char *argv[]) {
   }
 
   // particle filter
+  auto start = std::chrono::high_resolution_clock::now();
+
   for (int j = 0; j < T; j++) {
 
     // make our physical robot move (theta, distance)
@@ -80,8 +83,11 @@ int main(int argc, char *argv[]) {
     p = p3;
 
     // evaluation - measure distance of all particles to the actual robot
-    cout << eval(myrobot, p) << endl;
+//    cout << eval(myrobot, p) << endl;
   }
+
+  auto finish = std::chrono::high_resolution_clock::now();
+  std::cout << N <<","<<std::chrono::duration_cast<std::chrono::nanoseconds>(finish - start).count() << "\n";
 
   return 0;
 }

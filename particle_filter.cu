@@ -22,13 +22,14 @@ __global__ void particle_filter(Robot *particles, double *weights,
                                 const double *landmarks) {
   int index = threadIdx.x + blockDim.x * blockIdx.x;
   if (index < N) {
+    printf("???");
     particles[index].move(theta, distance);
     double prob = 1.0;
     for (int i = 0; i < num_landmarks; i++) {
       double dist = sqrt((particles[index].get_x() - landmarks[i * 2 + 0]) *
-                             (particles[index].get_x() - landmarks[i * 2 + 0]) +
-                         (particles[index].get_y() - landmarks[i * 2 + 1]) *
-                             (particles[index].get_y() - landmarks[i * 2 + 1]));
+          (particles[index].get_x() - landmarks[i * 2 + 0]) +
+          (particles[index].get_y() - landmarks[i * 2 + 1]) *
+              (particles[index].get_y() - landmarks[i * 2 + 1]));
       prob *= Gaussian(dist, particles[index].get_sense_noise(), Z_gpu[i]);
     }
     weights[index] = prob;
@@ -97,7 +98,7 @@ int main(int argc, char *argv[]) {
 
     // resampling
     vector<Robot> new_particles;
-    int index = (int)(uniform_distribution_sample() * N);
+    int index = (int) (uniform_distribution_sample() * N);
     double beta = 0.0;
     for (int m = 0; m < N; m++) {
       beta += uniform_distribution_sample() * 2.0 * max_w;
