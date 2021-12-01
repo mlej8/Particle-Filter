@@ -17,6 +17,8 @@ int main(int argc, char *argv[]) {
 
   // physical robot (ground truth)
   Robot myrobot;
+  myrobot.set_x(world_size/2);
+  myrobot.set_y(world_size/2);
 
   // list storing the distance of the physical robot to each obstacle
   vector<double> Z;

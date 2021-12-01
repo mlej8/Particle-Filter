@@ -62,6 +62,8 @@ int main(int argc, char *argv[]) {
 
   // physical robot (ground truth)
   Robot my_robot;
+  my_robot.set_x(world_size/2);
+  my_robot.set_y(world_size/2);
 
   // number of particles
   int N = 1000;
