@@ -52,9 +52,10 @@ int main(int argc, char *argv[]) {
   // physical robot (ground truth)
   auto start = chrono::high_resolution_clock::now();
 
-  if (argc != 4) {
-    cout << "Usage: ./particle_filter_gpu <number of particles> <number of "
-            "iterations of particle filtering> <number of threads per block>"
+  if (argc == 2 || argc > 4) {
+    cout << "Usage: ./particle_filter_gpu <optional:number_iteration "
+            "(default:1000)> <optional:number_particles (default:10)>"
+            "<number of threads per block (default:64)>"
          << endl;
     exit(1);
   }
@@ -62,13 +63,20 @@ int main(int argc, char *argv[]) {
   // physical robot (ground truth)
   Robot my_robot;
 
-  // number of particles (TODO: set default to 1000)
-  int N = atoi(argv[1]);
+  // number of particles
+  int N = 1000;
 
-  // number of particle filter iterations (TODO: set default to 10)
-  int T = atoi(argv[2]);
+  // number of PF iterations
+  int T = 10;
 
-  int block_size = atoi(argv[3]);
+  int block_size = 64;
+
+  if (argc == 4) {
+    N = atoi(argv[1]);
+    T = atoi(argv[2]);
+    block_size = atoi(argv[3]);
+  }
+
   size_t num_block = (N + block_size - 1) / block_size;
   size_t particles_size = N * sizeof(Robot);
   int num_landmarks = sizeof(landmarks) / sizeof(landmarks[0]);
@@ -88,8 +96,6 @@ int main(int argc, char *argv[]) {
   cudaMalloc(&particles_gpu, particles_size);
   
   cudaMemcpy(landmarks_gpu, landmarks, landmark_size, cudaMemcpyHostToDevice);
-  cudaMemcpy(particles_gpu, particles.data(), particles_size,
-             cudaMemcpyHostToDevice);
 
   for (int j = 0; j < T; j++) {
     double theta = uniform_distribution_sample() * M_PI / 2;
@@ -100,6 +106,10 @@ int main(int argc, char *argv[]) {
     // list of distance to each obstacle)
     vector<double> Z = my_robot.sense();
     thrust::device_vector<double> Z_gpu(Z);
+
+    // copy data to gpu
+    cudaMemcpy(particles_gpu, particles.data(), particles_size,
+               cudaMemcpyHostToDevice);
 
     particle_filter<<<num_block, block_size>>>(
         particles_gpu, thrust::raw_pointer_cast(weights_gpu.data()), theta,
@@ -139,12 +149,8 @@ int main(int argc, char *argv[]) {
       new_particles.push_back(particles[k]);
     }
     particles = new_particles;
-
-    // copy new particles to GPU for next iteration
-    cudaMemcpy(particles_gpu, particles.data(), particles_size,
-               cudaMemcpyHostToDevice);
-
-    cout << eval(my_robot, particles) << endl;
+    
+    cout << eval(my_robot, particles, j) << endl;
   }
 
   cudaFree(particles_gpu);

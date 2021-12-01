@@ -2,12 +2,10 @@
 #define PARTICLE_FILTER_ROBOT_H_
 #include <random>
 #include <vector>
+#include "world.h"
+#include <cmath>
 
 using namespace std;
-
-const double landmarks[4][2] = {
-    {20.0, 20.0}, {80.0, 80.0}, {20.0, 80.0}, {80.0, 20.0}};
-const double world_size = 100;
 
 static default_random_engine &get_engine() {
   // Initialized upon first call to the function.
@@ -55,5 +53,5 @@ class Robot {
 };
 
 double Gaussian(double mu, double sigma, double x);
-double eval(Robot r, vector<Robot> p);
+double eval(Robot r, const vector<Robot>& p, int itr);
 #endif

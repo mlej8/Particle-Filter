@@ -2,14 +2,10 @@
 #define PARTICLE_FILTER_ROBOT_H_
 #include <random>
 #include <vector>
+#include "world.h"
 
 using namespace std;
 
-#define COLS 2
-#define ROWS 4
-const double landmarks[ROWS][COLS] = {
-    {20.0, 20.0}, {80.0, 80.0}, {20.0, 80.0}, {80.0, 20.0}};
-const double world_size = 100;
 
 class Robot {
  public:
@@ -45,7 +41,7 @@ class Robot {
 };
 
 __host__ __device__ double Gaussian(double mu, double sigma, double x);
-__host__ double eval(Robot r, vector<Robot> p);
+__host__ double eval(Robot r, vector<Robot> p, int itr);
 
 __host__ default_random_engine &get_engine();
 __host__ double uniform_distribution_sample();

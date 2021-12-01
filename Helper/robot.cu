@@ -7,7 +7,16 @@
 
 #include "robot.cuh"
 
+#include <iostream>
+#include <sstream>
+#include <iomanip>
 using namespace std;
+
+#if defined(IMAGES)
+#include "opencv2/core.hpp"
+#include "opencv2/highgui.hpp"
+using namespace cv;
+#endif
 
 __host__ default_random_engine &get_engine() {
   // Initialized upon first call to the function.
@@ -112,7 +121,41 @@ __host__ __device__ double Gaussian(double mu, double sigma, double x) {
          sqrt(2.0 * M_PI * (sigma * sigma));
 }
 
-__host__ double eval(Robot r, vector<Robot> p) {
+#if defined(IMAGES)
+__host__ void plot_particles(Robot r, const vector<Robot> &p, int itr) {
+  Mat img = Mat::ones(world_size, world_size, CV_8UC3);
+
+//  plot_particles particle positions
+  for (auto &i: p) {
+    img.at<Vec3b>(round(i.get_x()), round(i.get_y())) = Vec3b(0, 255, 0);
+  }
+
+  //  plot_particles position of robot
+  img.at<Vec3b>(round(r.get_x()), round(r.get_y())) = Vec3b(0, 0, 255);
+
+
+//  plot_particles landmark position
+  for (auto &i: landmarks) {
+    img.at<Vec3b>(round(i[0]), round(i[1])) = Vec3b(255, 255, 255);
+  }
+
+//  plot_particles wall
+  for (int i = 0; i < world_size; ++i) {
+    img.at<Vec3b>(i, 0) = Vec3b(255, 255, 255);
+    img.at<Vec3b>(0, i) = Vec3b(255, 255, 255);
+    img.at<Vec3b>(i, world_size - 1) = Vec3b(255, 255, 255);
+    img.at<Vec3b>(world_size - 1, i) = Vec3b(255, 255, 255);
+
+  }
+  std::ostringstream str;
+  str << std::setw(3) << std::setfill('0') << itr;
+//  TODO generate in a temporary folder
+  imwrite("images/" + str.str() + ".png", img);
+
+}
+#endif
+
+__host__ double eval(Robot r, vector<Robot> p, int itr) {
   double sum = 0.0;
   for (int i = 0; i < p.size(); i++) {
     double dx = (p[i].get_x() - r.get_x() + fmod(world_size / 2.0, world_size) -
@@ -122,6 +165,11 @@ __host__ double eval(Robot r, vector<Robot> p) {
     double err = sqrt(dx * dx + dy * dy);
     sum += err;
   }
+
+#if defined(IMAGES)
+  plot_particles(r, p, itr);
+#endif
+
   return sum / (double)p.size();
 }
 

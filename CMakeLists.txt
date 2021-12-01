@@ -16,9 +16,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CUDA_SEPARABLE_COMPILATION ON)
 
 # choose CUDA Architecture
-if(NOT DEFINED CMAKE_CUDA_ARCHITECTURES)
+if (NOT DEFINED CMAKE_CUDA_ARCHITECTURES)
     set(CMAKE_CUDA_ARCHITECTURES 60)
-endif()
+endif ()
 
 set(pf_cpu particle_filter_cpu)
 set(pf_gpu particle_filter_gpu)
@@ -47,6 +47,6 @@ target_link_libraries(${pf_gpu} ${GPU_LIBS})
 target_include_directories(${pf_gpu} PUBLIC ${INCLUDE_DIR})
 
 # if debug build, add debugging flag for CUDA compiling
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-  target_compile_options(${pf_gpu} PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-g -G>)
-endif()
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    target_compile_options(${pf_gpu} PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-g -G>)
+endif ()

@@ -2,8 +2,16 @@
 
 #include <random>
 #include <stdexcept>
-
+#include <iostream>
+#include <sstream>
+#include <iomanip>
 using namespace std;
+
+#if defined(IMAGES)
+#include "opencv2/core.hpp"
+#include "opencv2/highgui.hpp"
+using namespace cv;
+#endif
 
 Robot::Robot()
     : x(uniform_distribution_sample() * world_size),
@@ -39,7 +47,7 @@ vector<double> Robot::sense() {
   for (int i = 0; i < (sizeof landmarks / sizeof landmarks[0]); i++) {
     double dist =
         sqrt((get_x() - landmarks[i][0]) * (get_x() - landmarks[i][0]) +
-             (get_y() - landmarks[i][1]) * (get_y() - landmarks[i][1]));
+            (get_y() - landmarks[i][1]) * (get_y() - landmarks[i][1]));
     normal_distribution<double> distribution(0.0, get_forward_noise());
     dist += distribution(get_engine());
     Z.push_back(dist);
@@ -76,7 +84,7 @@ double Robot::measurement_prob(vector<double> measurement) {
   for (int i = 0; i < (sizeof landmarks / sizeof landmarks[0]); i++) {
     double dist =
         sqrt((get_x() - landmarks[i][0]) * (get_x() - landmarks[i][0]) +
-             (get_y() - landmarks[i][1]) * (get_y() - landmarks[i][1]));
+            (get_y() - landmarks[i][1]) * (get_y() - landmarks[i][1]));
     prob *= Gaussian(dist, get_sense_noise(), measurement[i]);
   }
   return prob;
@@ -84,20 +92,59 @@ double Robot::measurement_prob(vector<double> measurement) {
 
 double Gaussian(double mu, double sigma, double x) {
   return exp(-((mu - x) * (mu - x)) / (sigma * sigma) / 2.0) /
-         sqrt(2.0 * M_PI * (sigma * sigma));
+      sqrt(2.0 * M_PI * (sigma * sigma));
 }
 
-double eval(Robot r, vector<Robot> p) {
+#if defined(IMAGES)
+void plot_particles(Robot r, const vector<Robot> &p, int itr) {
+  Mat img = Mat::ones(world_size, world_size, CV_8UC3);
+
+//  plot_particles particle positions
+  for (auto &i: p) {
+    img.at<Vec3b>(round(i.get_x()), round(i.get_y())) = Vec3b(0, 255, 0);
+  }
+
+  //  plot_particles position of robot
+  img.at<Vec3b>(round(r.get_x()), round(r.get_y())) = Vec3b(0, 0, 255);
+
+
+//  plot_particles landmark position
+  for (auto &i: landmarks) {
+    img.at<Vec3b>(round(i[0]), round(i[1])) = Vec3b(255, 255, 255);
+  }
+
+//  plot_particles wall
+  for (int i = 0; i < world_size; ++i) {
+    img.at<Vec3b>(i, 0) = Vec3b(255, 255, 255);
+    img.at<Vec3b>(0, i) = Vec3b(255, 255, 255);
+    img.at<Vec3b>(i, world_size - 1) = Vec3b(255, 255, 255);
+    img.at<Vec3b>(world_size - 1, i) = Vec3b(255, 255, 255);
+
+  }
+  std::ostringstream str;
+  str << std::setw(3) << std::setfill('0') << itr;
+//  TODO generate in a temporary folder
+  imwrite("images/" + str.str() + ".png", img);
+
+}
+#endif
+
+double eval(Robot r, const vector<Robot> &p, int itr) {
   double sum = 0.0;
-  for (int i = 0; i < p.size(); i++) {
-    double dx = (p[i].get_x() - r.get_x() + fmod(world_size / 2.0, world_size) -
-                 (world_size / 2.0));
-    double dy = (p[i].get_y() - r.get_y() + fmod(world_size / 2.0, world_size) -
-                 (world_size / 2.0));
+  for (auto &i: p) {
+    double dx = (i.get_x() - r.get_x() + fmod(world_size / 2.0, world_size) -
+        (world_size / 2.0));
+    double dy = (i.get_y() - r.get_y() + fmod(world_size / 2.0, world_size) -
+        (world_size / 2.0));
     double err = sqrt(dx * dx + dy * dy);
     sum += err;
   }
-  return sum / (double)p.size();
+
+#if defined(IMAGES)
+  plot_particles(r, p, itr);
+#endif
+
+  return sum / (double) p.size();
 }
 
 double Robot::get_x() const { return x; }

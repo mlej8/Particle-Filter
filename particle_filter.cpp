@@ -58,7 +58,7 @@ int main(int argc, char *argv[]) {
 
     // weight summation
     double weight_sum = 0.0;
-    for (auto weight : w) weight_sum += weight;
+    for (auto weight: w) weight_sum += weight;
 
     // weight normalization
     for (int k = 0; k < N; k++) {
@@ -90,11 +90,11 @@ int main(int argc, char *argv[]) {
 
     // evaluation - measure distance of all particles to the actual robot
 
-    cout << eval(myrobot, particles) << endl;
-}
+    cout << eval(myrobot, particles, j) << endl;
+  }
 
   auto finish = std::chrono::high_resolution_clock::now();
-  std::cout << N <<","<<std::chrono::duration_cast<std::chrono::nanoseconds>(finish - start).count() << "\n";
+  std::cout << N << "," << std::chrono::duration_cast<std::chrono::nanoseconds>(finish - start).count() << "\n";
 
   return 0;
 }
