@@ -32,12 +32,15 @@ set(INCLUDE_DIR "${PROJECT_SOURCE_DIR}/Helper")
 add_subdirectory(Helper)
 
 # create a list of libraries
-set(CPU_LIBS ${robot_cpu})
 set(GPU_LIBS ${robot_gpu})
 
-add_executable(${pf_cpu} particle_filter.cpp)
-target_link_libraries(${pf_cpu} ${CPU_LIBS})
+add_executable(${pf_cpu} particle_filter_cpu.cu)
+target_link_libraries(${pf_cpu} ${GPU_LIBS})
 target_include_directories(${pf_cpu} PUBLIC ${INCLUDE_DIR})
+
+if (IMAGES)
+    target_compile_definitions(${pf_cpu} PRIVATE IMAGES)
+endif ()
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     target_compile_options(${pf_cpu} PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-g>)
 endif ()
@@ -46,6 +49,9 @@ add_executable(${pf_gpu} particle_filter.cu)
 target_link_libraries(${pf_gpu} ${GPU_LIBS})
 target_include_directories(${pf_gpu} PUBLIC ${INCLUDE_DIR})
 
+if (IMAGES)
+    target_compile_definitions(${pf_gpu} PRIVATE IMAGES)
+endif ()
 # if debug build, add debugging flag for CUDA compiling
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     target_compile_options(${pf_gpu} PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-g -G>)

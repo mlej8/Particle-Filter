@@ -12,7 +12,12 @@
 ## Generate image for each loop
 Make sure you have OpenCV installed. See [here](https://docs.opencv.org/4.x/d7/d9f/tutorial_linux_install.html) for install guide.
 1. Compile with `cmake . -D IMAGES=1 && make`
-2. Run the program you would like like above
+2. Run the program. (Max of 70k particles)
 3. The images will be in `images/`.
-4. To generate a gif, run `convert -delay 50 -loop 0 *.png myimage.gif`.
+4. To generate a gif, run `convert -delay 50 -loop 0 images/*.png myimage.gif`.
    1. If you do not have imagemagick, run `sudo apt-get install imagemagick`
+5. Make sure to clear the `images/` folder if you are running it another time
+
+## Notes
+* The sequential implementation needs to end with `.cu` in order to let the CUDA compiler link the `robot.cuh` library. 
+It is done this way to reduce duplicated code. No GPU kernels are used.

@@ -7,9 +7,6 @@
 
 #include "robot.cuh"
 
-#include <iostream>
-#include <sstream>
-#include <iomanip>
 using namespace std;
 
 #if defined(IMAGES)
@@ -64,7 +61,7 @@ __host__ vector<double> Robot::sense() {
   for (int i = 0; i < (sizeof landmarks / sizeof landmarks[0]); i++) {
     double dist =
         sqrt((get_x() - landmarks[i][0]) * (get_x() - landmarks[i][0]) +
-             (get_y() - landmarks[i][1]) * (get_y() - landmarks[i][1]));
+            (get_y() - landmarks[i][1]) * (get_y() - landmarks[i][1]));
     normal_distribution<double> distribution(0.0, get_forward_noise());
     dist += distribution(get_engine());
     Z.push_back(dist);
@@ -110,7 +107,7 @@ __host__ double Robot::measurement_prob(vector<double> measurement) {
   for (int i = 0; i < (sizeof landmarks / sizeof landmarks[0]); i++) {
     double dist =
         sqrt((get_x() - landmarks[i][0]) * (get_x() - landmarks[i][0]) +
-             (get_y() - landmarks[i][1]) * (get_y() - landmarks[i][1]));
+            (get_y() - landmarks[i][1]) * (get_y() - landmarks[i][1]));
     prob *= Gaussian(dist, get_sense_noise(), measurement[i]);
   }
   return prob;
@@ -118,7 +115,15 @@ __host__ double Robot::measurement_prob(vector<double> measurement) {
 
 __host__ __device__ double Gaussian(double mu, double sigma, double x) {
   return exp(-((mu - x) * (mu - x)) / (sigma * sigma) / 2.0) /
-         sqrt(2.0 * M_PI * (sigma * sigma));
+      sqrt(2.0 * M_PI * (sigma * sigma));
+}
+
+template<typename T/*, typename = std::enable_if_t<std::is_integral_v<T>>*/>
+string to_string_with_zero_padding(const T &value, size_t total_length) {
+  auto str = to_string(value);
+  if (str.length() < total_length)
+    str.insert(str.front() == '-' ? 1 : 0, total_length - str.length(), '0');
+  return str;
 }
 
 #if defined(IMAGES)
@@ -147,10 +152,8 @@ __host__ void plot_particles(Robot r, const vector<Robot> &p, int itr) {
     img.at<Vec3b>(world_size - 1, i) = Vec3b(255, 255, 255);
 
   }
-  std::ostringstream str;
-  str << std::setw(3) << std::setfill('0') << itr;
-//  TODO generate in a temporary folder
-  imwrite("images/" + str.str() + ".png", img);
+
+  imwrite("images/" + to_string_with_zero_padding(itr, 3) + ".png", img);
 
 }
 #endif
@@ -159,9 +162,9 @@ __host__ double eval(Robot r, vector<Robot> p, int itr) {
   double sum = 0.0;
   for (int i = 0; i < p.size(); i++) {
     double dx = (p[i].get_x() - r.get_x() + fmod(world_size / 2.0, world_size) -
-                 (world_size / 2.0));
+        (world_size / 2.0));
     double dy = (p[i].get_y() - r.get_y() + fmod(world_size / 2.0, world_size) -
-                 (world_size / 2.0));
+        (world_size / 2.0));
     double err = sqrt(dx * dx + dy * dy);
     sum += err;
   }
@@ -170,7 +173,7 @@ __host__ double eval(Robot r, vector<Robot> p, int itr) {
   plot_particles(r, p, itr);
 #endif
 
-  return sum / (double)p.size();
+  return sum / (double) p.size();
 }
 
 __host__ __device__ double Robot::get_x() const { return x; }

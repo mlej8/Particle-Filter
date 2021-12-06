@@ -3,7 +3,9 @@
 #include <vector>
 #include <chrono>
 
-#include "robot.h"
+#include "robot.cuh"
+
+using namespace std;
 
 int main(int argc, char *argv[]) {
   auto start = std::chrono::high_resolution_clock::now();
@@ -17,8 +19,8 @@ int main(int argc, char *argv[]) {
 
   // physical robot (ground truth)
   Robot myrobot;
-  myrobot.set_x(world_size/2);
-  myrobot.set_y(world_size/2);
+  myrobot.set_x(world_size / 2);
+  myrobot.set_y(world_size / 2);
 
   // list storing the distance of the physical robot to each obstacle
   vector<double> Z;
@@ -33,6 +35,15 @@ int main(int argc, char *argv[]) {
     N = atoi(argv[1]);
     T = atoi(argv[2]);
   }
+
+#if defined(IMAGES)
+  if (N > 70000) {
+    cout << "Cannot run with more than 70,000 particles while generating the images. "
+            "Compile with 'cmake . -D IMAGES=0' to run with more particles."
+         << endl;
+    exit(1);
+  }
+#endif
 
   // initialize particles
   vector<Robot> particles(N);

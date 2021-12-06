@@ -15,7 +15,7 @@ using namespace std;
 
 // TODO fix bug where if block_size > 512 code fails
 
-__global__ void weight_normalization(double *weights, double weight_sum, const int N){
+__global__ void weight_normalization(double *weights, double weight_sum, const int N) {
   int index = threadIdx.x + blockDim.x * blockIdx.x;
   if (index < N) {
     weights[index] /= weight_sum;
@@ -40,9 +40,9 @@ __global__ void particle_filter(Robot *particles, double *weights,
     for (int i = 0; i < num_landmarks; i++) {
       double dist =
           sqrt((particles[index].get_x() - landmarks_gpu[i * 2 + 0]) *
-                   (particles[index].get_x() - landmarks_gpu[i * 2 + 0]) +
-               (particles[index].get_y() - landmarks_gpu[i * 2 + 1]) *
-                   (particles[index].get_y() - landmarks_gpu[i * 2 + 1]));
+              (particles[index].get_x() - landmarks_gpu[i * 2 + 0]) +
+              (particles[index].get_y() - landmarks_gpu[i * 2 + 1]) *
+                  (particles[index].get_y() - landmarks_gpu[i * 2 + 1]));
       prob *= Gaussian(dist, particles[index].get_sense_noise(), Z[i]);
     }
     weights[index] = prob;
@@ -62,8 +62,8 @@ int main(int argc, char *argv[]) {
 
   // physical robot (ground truth)
   Robot my_robot;
-  my_robot.set_x(world_size/2);
-  my_robot.set_y(world_size/2);
+  my_robot.set_x(world_size / 2);
+  my_robot.set_y(world_size / 2);
 
   // number of particles
   int N = 1000;
@@ -78,6 +78,15 @@ int main(int argc, char *argv[]) {
     T = atoi(argv[2]);
     block_size = atoi(argv[3]);
   }
+
+#if defined(IMAGES)
+  if (N > 70000) {
+    cout << "Cannot run with more than 70,000 particles while generating the images. "
+            "Compile with 'cmake . -D IMAGES=0' to run with more particles."
+         << endl;
+    exit(1);
+  }
+#endif
 
   size_t num_block = (N + block_size - 1) / block_size;
   size_t particles_size = N * sizeof(Robot);
@@ -96,7 +105,7 @@ int main(int argc, char *argv[]) {
   double *landmarks_gpu;
   cudaMalloc(&landmarks_gpu, landmark_size);
   cudaMalloc(&particles_gpu, particles_size);
-  
+
   cudaMemcpy(landmarks_gpu, landmarks, landmark_size, cudaMemcpyHostToDevice);
 
   for (int j = 0; j < T; j++) {
@@ -151,7 +160,7 @@ int main(int argc, char *argv[]) {
       new_particles.push_back(particles[k]);
     }
     particles = new_particles;
-    
+
     cout << eval(my_robot, particles, j) << endl;
   }
 
