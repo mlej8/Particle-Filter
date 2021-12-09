@@ -1,0 +1,3 @@
+☐ debug for threads > 512
+☐ combine robot.cpp and robot.h and robot.cu and robot.cuh
+☐ make it work with ROS and CUDA?
